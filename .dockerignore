@@ -1,0 +1,27 @@
+# Dépôt Git et configuration CI
+.git/
+.github/
+
+# Fichiers compilés Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Artefacts de tests et couverture
+.pytest_cache/
+htmlcov/
+coverage.xml
+.coverage
+
+# Secrets et fichiers locaux
+.env
+.env.*
+
+# Terraform
+*.tfstate
+.terraform/

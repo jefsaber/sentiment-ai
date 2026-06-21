@@ -1,6 +1,7 @@
-﻿pipeline {
+pipeline {
 agent any
 
+```
 environment {
     IMAGE_NAME = 'sentiment-ai'
     REGISTRY = 'ghcr.io/jefsaber'
@@ -61,7 +62,7 @@ stages {
         }
         post {
             failure {
-                echo 'Tests Ã©chouÃ©s ou coverage insuffisant (< 70%)'
+                echo 'Tests failed or coverage lower than 70%'
             }
         }
     }
@@ -118,8 +119,8 @@ stages {
         }
         post {
             failure {
-                echo 'VulnÃ©rabilitÃ©s HIGH ou CRITICAL dÃ©tectÃ©es !'
-                echo 'Corrigez les dÃ©pendances avant de dÃ©ployer.'
+                echo 'High or critical vulnerabilities detected'
+                echo 'Please fix dependencies before deployment'
             }
         }
     }
@@ -176,17 +177,7 @@ stages {
                     2>/dev/null || true
                 fi
 
-                CONTAINER_ID=$(docker inspect -f "{{.ID}}" sentiment-staging 2>/dev/null || true)
-
-                if [ -n "$CONTAINER_ID" ]; then
-                  terraform import \
-                    -var="docker_host=unix:///var/run/docker.sock" \
-                    docker_container.sentiment_staging \
-                    "$CONTAINER_ID" \
-                    2>/dev/null || true
-                fi
-
-                docker rm -f prometheus grafana 2>/dev/null || true
+                docker rm -f sentiment-staging prometheus grafana 2>/dev/null || true
 
                 terraform apply -auto-approve \
                   -var="image_tag=${IMAGE_TAG}" \
@@ -226,18 +217,18 @@ stages {
         }
         steps {
             sh '''
-            echo "Attente dÃ©marrage des services..."
+            echo "Waiting for services startup..."
             sleep 10
 
-            echo "1. VÃ©rification /health SentimentAI"
+            echo "1. Checking SentimentAI health"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
               -f http://sentiment-staging:8000/health
 
-            echo "/health OK"
+            echo "Health OK"
 
-            echo "2. GÃ©nÃ©ration d'une prÃ©diction"
+            echo "2. Sending one prediction"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
@@ -245,26 +236,26 @@ stages {
               -H "Content-Type: application/json" \
               -d '{"text":"Ce produit est vraiment bien"}' > /dev/null
 
-            echo "3. VÃ©rification /metrics"
+            echo "3. Checking metrics endpoint"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
               -s http://sentiment-staging:8000/metrics | grep -q sentiment_predictions_total
 
-            echo "/metrics OK -- mÃ©triques SentimentAI prÃ©sentes"
+            echo "Metrics OK"
 
-            echo "4. Attente du scrape Prometheus..."
+            echo "4. Waiting for Prometheus scrape..."
             sleep 20
 
-            echo "5. VÃ©rification Prometheus scrape sentiment-ai"
+            echo "5. Checking Prometheus target"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
               -s "http://prometheus:9090/api/v1/query?query=up%7Bjob%3D%22sentiment-ai%22%7D" | grep -q '"1"'
 
-            echo "Prometheus scrape sentiment-ai : UP"
+            echo "Prometheus scrape OK"
 
-            echo "6. VÃ©rification Grafana"
+            echo "6. Checking Grafana health"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
@@ -278,7 +269,7 @@ stages {
                 sh 'docker logs prometheus || true'
                 sh 'docker logs sentiment-staging || true'
                 sh 'docker logs grafana || true'
-                echo 'Smoke Test KO -- voir logs ci-dessus'
+                echo 'Smoke Test failed. Check logs above.'
             }
         }
     }
@@ -286,12 +277,13 @@ stages {
 
 post {
     success {
-        echo "Pipeline rÃ©ussi ! Image : ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        echo "Pipeline succeeded. Image: ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     failure {
-        echo 'Pipeline Ã©chouÃ©. Consultez les logs ci-dessus.'
+        echo 'Pipeline failed. Check logs above.'
     }
 }
+```
 
 }

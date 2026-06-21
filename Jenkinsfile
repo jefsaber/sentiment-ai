@@ -286,10 +286,6 @@ stages {
 }
 
 post {
-    always {
-        sh 'docker compose down -v 2>/dev/null || true'
-    }
-
     success {
         echo "Pipeline réussi ! Image : ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
     }

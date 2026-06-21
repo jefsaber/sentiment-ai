@@ -50,9 +50,4 @@ class SentimentModel:
 
 
 def format_label_for_display(label: str) -> str:
-    if label == "POSITIVE":
-        return label
-    elif label == "NEGATIVE":
-        return label
-    else:
-        return label
+    return label

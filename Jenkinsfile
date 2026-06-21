@@ -1,7 +1,6 @@
-pipeline {
+﻿pipeline {
 agent any
 
-```
 environment {
     IMAGE_NAME = 'sentiment-ai'
     REGISTRY = 'ghcr.io/jefsaber'
@@ -62,7 +61,7 @@ stages {
         }
         post {
             failure {
-                echo 'Tests échoués ou coverage insuffisant (< 70%)'
+                echo 'Tests Ã©chouÃ©s ou coverage insuffisant (< 70%)'
             }
         }
     }
@@ -119,8 +118,8 @@ stages {
         }
         post {
             failure {
-                echo 'Vulnérabilités HIGH ou CRITICAL détectées !'
-                echo 'Corrigez les dépendances avant de déployer.'
+                echo 'VulnÃ©rabilitÃ©s HIGH ou CRITICAL dÃ©tectÃ©es !'
+                echo 'Corrigez les dÃ©pendances avant de dÃ©ployer.'
             }
         }
     }
@@ -227,10 +226,10 @@ stages {
         }
         steps {
             sh '''
-            echo "Attente démarrage des services..."
+            echo "Attente dÃ©marrage des services..."
             sleep 10
 
-            echo "1. Vérification /health SentimentAI"
+            echo "1. VÃ©rification /health SentimentAI"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
@@ -238,7 +237,7 @@ stages {
 
             echo "/health OK"
 
-            echo "2. Génération d'une prédiction"
+            echo "2. GÃ©nÃ©ration d'une prÃ©diction"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
@@ -246,18 +245,18 @@ stages {
               -H "Content-Type: application/json" \
               -d '{"text":"Ce produit est vraiment bien"}' > /dev/null
 
-            echo "3. Vérification /metrics"
+            echo "3. VÃ©rification /metrics"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
               -s http://sentiment-staging:8000/metrics | grep -q sentiment_predictions_total
 
-            echo "/metrics OK -- métriques SentimentAI présentes"
+            echo "/metrics OK -- mÃ©triques SentimentAI prÃ©sentes"
 
             echo "4. Attente du scrape Prometheus..."
             sleep 20
 
-            echo "5. Vérification Prometheus scrape sentiment-ai"
+            echo "5. VÃ©rification Prometheus scrape sentiment-ai"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
@@ -265,7 +264,7 @@ stages {
 
             echo "Prometheus scrape sentiment-ai : UP"
 
-            echo "6. Vérification Grafana"
+            echo "6. VÃ©rification Grafana"
             docker run --rm \
               --network cicd-network \
               curlimages/curl:latest \
@@ -287,13 +286,12 @@ stages {
 
 post {
     success {
-        echo "Pipeline réussi ! Image : ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+        echo "Pipeline rÃ©ussi ! Image : ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
     }
 
     failure {
-        echo 'Pipeline échoué. Consultez les logs ci-dessus.'
+        echo 'Pipeline Ã©chouÃ©. Consultez les logs ci-dessus.'
     }
 }
-```
 
 }

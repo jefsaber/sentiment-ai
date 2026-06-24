@@ -1,4 +1,4 @@
-﻿pipeline {
+pipeline {
     agent any
 
     environment {
@@ -61,7 +61,7 @@
             }
             post {
                 failure {
-                    echo 'Tests failed or coverage lower than 70 percent'
+                    echo 'Tests failed or coverage lower than 70%'
                 }
             }
         }
